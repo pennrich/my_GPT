@@ -1,4 +1,8 @@
 import streamlit as st
+import openai
+
+# API 키 불러오기
+openai.api_key = st.secrets["openai"]["api_key"]
 
 # 세션 상태 초기화
 if "messages" not in st.session_state:
@@ -7,16 +11,23 @@ if "messages" not in st.session_state:
 # 사용자 입력 받기
 prompt = st.chat_input("메시지를 입력하세요...")
 
-# 입력이 있을 때 메시지 처리
+# 메시지 처리
 if prompt:
     # 사용자 메시지 저장
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # 예시 응답 생성
-    response = f"'{prompt}'에 대한 답변입니다."
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    # GPT API 호출
+    with st.spinner("GPT가 응답을 생성 중입니다..."):
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # 또는 "gpt-3.5-turbo"
+            messages=st.session_state.messages,
+        )
+        assistant_reply = response.choices[0].message.content
 
-# CSS: 입력창 고정 및 내용 아래 패딩
+    # GPT 응답 저장
+    st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
+
+# UI 표시
 st.markdown("""
     <style>
     .stChatInput {
@@ -39,10 +50,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 챗 메시지 출력
+# 대화 출력
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 st.markdown('</div>', unsafe_allow_html=True)
-
