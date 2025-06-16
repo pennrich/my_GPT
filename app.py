@@ -4,7 +4,21 @@ import streamlit as st
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# CSS로 입력창을 하단에 고정
+# 사용자 입력 처리 함수
+def process_input():
+    prompt = st.session_state.user_input
+    if prompt:
+        # 사용자 메시지 저장
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        # 예시 응답
+        response = f"'{prompt}'에 대한 답변입니다."
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+        # 입력창 초기화
+        st.session_state.user_input = ""
+
+# 스타일 지정: 입력창 고정 + 상단 대화
 st.markdown("""
     <style>
     .stChatInput {
@@ -22,24 +36,22 @@ st.markdown("""
         margin: 0 auto;
     }
     .chat-container {
-        margin-bottom: 6rem; /* 아래 입력창 영역 확보 */
+        margin-bottom: 7rem; /* 입력창 영역 확보 */
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 챗 메시지 출력 (상단)
+# 챗 기록 표시
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 사용자 입력 처리
-if prompt := st.chat_input("메시지를 입력하세요..."):
-    # 사용자 메시지 저장
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# 입력창
+user_input = st.chat_input("메시지를 입력하세요...", key="user_input", on_submit=process_input)
 
-    # 응답 생성 (임시 응답)
-    response = f"'{prompt}'에 대한 답변입니다."
-    st.session_state.messages.append({"role": "assistant", "content": response})
+# 입력값 처리
+if user_input:
+    process_input()
 
